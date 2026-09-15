@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "powergrideconomy:block/electrical_service_block"
+    }
+  }
+}
