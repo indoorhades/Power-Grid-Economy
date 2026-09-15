@@ -14,7 +14,6 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.jetbrains.annotations.Nullable;
 import org.patryk3211.powergrid.electricity.base.IDecoratedTerminal;
 import org.patryk3211.powergrid.electricity.base.Rotation4ElectricBlock;
 import org.patryk3211.powergrid.electricity.base.TerminalBoundingBox;
@@ -22,14 +21,18 @@ import org.patryk3211.powergrid.electricity.base.terminals.BlockStateTerminalCol
 
 @MethodsReturnNonnullByDefault
 public class PrepaidMeterBlock extends Rotation4ElectricBlock implements IBE<PrepaidMeterBlockEntity> {
+    // The user's model has four copper connector pins:
+    // NORTH = electrical input, SOUTH = electrical output.
+    // On each side: upper pin is positive, lower pin is negative.
     private final TerminalBoundingBox[] TERMINALS = new TerminalBoundingBox[] {
-            new TerminalBoundingBox(IDecoratedTerminal.POSITIVE, 3, 1, 0.5, 7, 4, 3).withColor(IDecoratedTerminal.RED),
-            new TerminalBoundingBox(IDecoratedTerminal.NEGATIVE, 9, 1, 0.5, 13, 4, 3).withColor(IDecoratedTerminal.BLUE),
-            new TerminalBoundingBox(IDecoratedTerminal.POSITIVE, 3, 1, 13, 7, 4, 15.5).withColor(IDecoratedTerminal.RED),
-            new TerminalBoundingBox(IDecoratedTerminal.NEGATIVE, 9, 1, 13, 13, 4, 15.5).withColor(IDecoratedTerminal.BLUE)
+            new TerminalBoundingBox(IDecoratedTerminal.POSITIVE, 7, 13, 0, 9, 15, 2).withColor(IDecoratedTerminal.RED),
+            new TerminalBoundingBox(IDecoratedTerminal.NEGATIVE, 7, 9, 0, 9, 11, 2).withColor(IDecoratedTerminal.BLUE),
+            new TerminalBoundingBox(IDecoratedTerminal.POSITIVE, 7, 13, 14, 9, 15, 16).withColor(IDecoratedTerminal.RED),
+            new TerminalBoundingBox(IDecoratedTerminal.NEGATIVE, 7, 9, 14, 9, 11, 16).withColor(IDecoratedTerminal.BLUE)
     };
 
-    private static final VoxelShape SHAPE = box(2, 0, 2, 14, 8, 14);
+    // Exact visual footprint of the supplied model, including the four connector pins.
+    private static final VoxelShape SHAPE = box(5, 0, 0, 11, 16, 16);
 
     public PrepaidMeterBlock(BlockBehaviour.Properties properties) {
         super(properties);
