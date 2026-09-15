@@ -2,11 +2,8 @@ package com.indoorhades.powergrideconomy;
 
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.RenderShape;
@@ -19,10 +16,10 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * First implementation of the Power Grid Economy electrical service block.
+ * Power Grid Economy electrical service block.
  *
- * The four copper terminals are part of the model and are reserved for the
- * real Power Grid electrical connections in the next integration step.
+ * The four copper terminals are represented by the block model and are
+ * reserved for the real Power Grid electrical connections.
  */
 public class ElectricalServiceBlock extends BaseEntityBlock {
     public static final MapCodec<ElectricalServiceBlock> CODEC = simpleCodec(ElectricalServiceBlock::new);
@@ -49,7 +46,11 @@ public class ElectricalServiceBlock extends BaseEntityBlock {
     @Override
     @Nullable
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        return level.isClientSide ? null : (level, pos, blockState, blockEntity) -> {
+        if (level.isClientSide) {
+            return null;
+        }
+
+        return (tickLevel, pos, blockState, blockEntity) -> {
             if (blockEntity instanceof ElectricalServiceBlockEntity electrical) {
                 electrical.tickServer();
             }
