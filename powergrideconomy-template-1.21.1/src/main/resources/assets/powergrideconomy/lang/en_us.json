@@ -1,0 +1,13 @@
+{
+  "itemGroup.powergrideconomy": "Example Mod Tab",
+  "block.powergrideconomy.example_block": "Example Block",
+  "item.powergrideconomy.example_item": "Example Item",
+
+  "powergrideconomy.configuration.title": "Power Grid Economy Configs",
+  "powergrideconomy.configuration.section.powergrideconomy.common.toml": "Power Grid Economy Configs",
+  "powergrideconomy.configuration.section.powergrideconomy.common.toml.title": "Power Grid Economy Configs",
+  "powergrideconomy.configuration.items": "Item List",
+  "powergrideconomy.configuration.logDirtBlock": "Log Dirt Block",
+  "powergrideconomy.configuration.magicNumberIntroduction": "Magic Number Text",
+  "powergrideconomy.configuration.magicNumber": "Magic Number"
+}
