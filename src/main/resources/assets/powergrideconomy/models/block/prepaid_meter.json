@@ -1,4 +1,11 @@
 {
-  "parent": "minecraft:block/cube_all",
-  "textures": {"all": "minecraft:block/iron_block"}
+  "textures": {"body":"powergrideconomy:block/body","front":"powergrideconomy:block/front","red":"powergrideconomy:block/terminal_red","blue":"powergrideconomy:block/terminal_blue"},
+  "elements": [
+    {"from":[2,0,2],"to":[14,8,14],"faces":{"down":{"texture":"#body"},"up":{"texture":"#body"},"north":{"texture":"#body"},"south":{"texture":"#body"},"west":{"texture":"#body"},"east":{"texture":"#body"}}},
+    {"from":[3,2,1.8],"to":[13,7,2.05],"faces":{"north":{"texture":"#front"},"south":{"texture":"#body"},"west":{"texture":"#body"},"east":{"texture":"#body"},"up":{"texture":"#body"},"down":{"texture":"#body"}}},
+    {"from":[3,1,0],"to":[7,4,2],"faces":{"north":{"texture":"#red"},"south":{"texture":"#red"},"west":{"texture":"#red"},"east":{"texture":"#red"},"up":{"texture":"#red"},"down":{"texture":"#red"}}},
+    {"from":[9,1,0],"to":[13,4,2],"faces":{"north":{"texture":"#blue"},"south":{"texture":"#blue"},"west":{"texture":"#blue"},"east":{"texture":"#blue"},"up":{"texture":"#blue"},"down":{"texture":"#blue"}}},
+    {"from":[3,1,14],"to":[7,4,16],"faces":{"north":{"texture":"#red"},"south":{"texture":"#red"},"west":{"texture":"#red"},"east":{"texture":"#red"},"up":{"texture":"#red"},"down":{"texture":"#red"}}},
+    {"from":[9,1,14],"to":[13,4,16],"faces":{"north":{"texture":"#blue"},"south":{"texture":"#blue"},"west":{"texture":"#blue"},"east":{"texture":"#blue"},"up":{"texture":"#blue"},"down":{"texture":"#blue"}}}
+  ]
 }
