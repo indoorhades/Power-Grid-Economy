@@ -1,10 +1,8 @@
 package com.indoorhades.powergrideconomy;
 
 import com.simibubi.create.foundation.block.IBE;
-import net.createmod.catnip.math.VoxelShaper;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -13,46 +11,37 @@ import net.minecraft.world.level.block.BlockBehaviour;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.shapes.VoxelShape;
 import org.patryk3211.powergrid.electricity.base.IDecoratedTerminal;
 import org.patryk3211.powergrid.electricity.base.Rotation4ElectricBlock;
 import org.patryk3211.powergrid.electricity.base.TerminalBoundingBox;
 import org.patryk3211.powergrid.electricity.base.terminals.BlockStateTerminalCollection;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 @MethodsReturnNonnullByDefault
 public class PrepaidMeterBlock extends Rotation4ElectricBlock implements IBE<PrepaidMeterBlockEntity> {
-    // The user's model has four copper connector pins:
-    // NORTH = electrical input, SOUTH = electrical output.
-    // On each side: upper pin is positive, lower pin is negative.
-    private final TerminalBoundingBox[] TERMINALS = new TerminalBoundingBox[] {
-            new TerminalBoundingBox(IDecoratedTerminal.POSITIVE, 7, 13, 0, 9, 15, 2).withColor(IDecoratedTerminal.RED),
-            new TerminalBoundingBox(IDecoratedTerminal.NEGATIVE, 7, 9, 0, 9, 11, 2).withColor(IDecoratedTerminal.BLUE),
-            new TerminalBoundingBox(IDecoratedTerminal.POSITIVE, 7, 13, 14, 9, 15, 16).withColor(IDecoratedTerminal.RED),
-            new TerminalBoundingBox(IDecoratedTerminal.NEGATIVE, 7, 9, 14, 9, 11, 16).withColor(IDecoratedTerminal.BLUE)
+    // Tu modelo tiene cuatro puntas de cobre: 2 de entrada y 2 de salida.
+    // En la orientación base: entrada = lado Z- y salida = lado Z+.
+    // En cada lado: pin superior = positivo, pin inferior = negativo.
+    private static final TerminalBoundingBox[] TERMINALS = new TerminalBoundingBox[] {
+            new TerminalBoundingBox(IDecoratedTerminal.POSITIVE, 7, 13, 0, 9, 15, 2)
+                    .withColor(IDecoratedTerminal.RED),
+            new TerminalBoundingBox(IDecoratedTerminal.NEGATIVE, 7, 9, 0, 9, 11, 2)
+                    .withColor(IDecoratedTerminal.BLUE),
+            new TerminalBoundingBox(IDecoratedTerminal.POSITIVE, 7, 13, 14, 9, 15, 16)
+                    .withColor(IDecoratedTerminal.RED),
+            new TerminalBoundingBox(IDecoratedTerminal.NEGATIVE, 7, 9, 14, 9, 11, 16)
+                    .withColor(IDecoratedTerminal.BLUE)
     };
 
-    // Exact visual footprint of the supplied model, including the four connector pins.
+    // Huella completa del modelo enviado: cuerpo + display + 4 puntas.
     private static final VoxelShape SHAPE = box(5, 0, 0, 11, 16, 16);
 
     public PrepaidMeterBlock(BlockBehaviour.Properties properties) {
         super(properties);
-        var shaper = VoxelShaper.forDirectional(SHAPE, Direction.DOWN);
-        setTerminalCollection(BlockStateTerminalCollection.builder(this)
-                .forAllStates(state -> BlockStateTerminalCollection.each(TERMINALS, terminal -> {
-                    var facing = state.getValue(FACING);
-                    terminal = switch (facing) {
-                        case DOWN -> terminal;
-                        case UP -> terminal.rotateAroundX(180);
-                        case EAST -> terminal.rotateAroundZ(90).rotateAroundY(180);
-                        case WEST -> terminal.rotateAroundZ(90);
-                        case NORTH -> terminal.rotateAroundZ(90).rotateAroundY(90);
-                        case SOUTH -> terminal.rotateAroundZ(90).rotateAroundY(-90);
-                    };
-                    var rotation = state.getValue(ROTATION);
-                    return terminal.rotate(facing.getAxis(), 90 * rotation - 90);
-                }))
-                .withShapeMapper(state -> shaper.get(state.getValue(FACING)))
-                .build());
+        // Usa el sistema oficial de Rotation4ElectricBlock para que tanto el
+        // modelo como los cuatro terminales giren juntos en las 4 rotaciones.
+        BlockStateTerminalCollection terminals = Rotation4ElectricBlock.rotation4DownTerminals(this, TERMINALS, SHAPE);
+        setTerminalCollection(terminals);
     }
 
     @Override
