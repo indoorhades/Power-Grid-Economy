@@ -1,0 +1,69 @@
+{
+  "credit": "Power Grid Economy",
+  "textures": {
+    "body": "minecraft:block/iron_block",
+    "terminal": "minecraft:block/copper_block"
+  },
+  "elements": [
+    {
+      "from": [2, 1, 2],
+      "to": [14, 15, 14],
+      "faces": {
+        "down": {"texture": "#body"},
+        "up": {"texture": "#body"},
+        "north": {"texture": "#body"},
+        "south": {"texture": "#body"},
+        "west": {"texture": "#body"},
+        "east": {"texture": "#body"}
+      }
+    },
+    {
+      "from": [0, 5, 4],
+      "to": [3, 8, 7],
+      "faces": {
+        "west": {"texture": "#terminal"},
+        "east": {"texture": "#terminal"},
+        "north": {"texture": "#terminal"},
+        "south": {"texture": "#terminal"},
+        "up": {"texture": "#terminal"},
+        "down": {"texture": "#terminal"}
+      }
+    },
+    {
+      "from": [0, 10, 9],
+      "to": [3, 13, 12],
+      "faces": {
+        "west": {"texture": "#terminal"},
+        "east": {"texture": "#terminal"},
+        "north": {"texture": "#terminal"},
+        "south": {"texture": "#terminal"},
+        "up": {"texture": "#terminal"},
+        "down": {"texture": "#terminal"}
+      }
+    },
+    {
+      "from": [13, 5, 4],
+      "to": [16, 8, 7],
+      "faces": {
+        "west": {"texture": "#terminal"},
+        "east": {"texture": "#terminal"},
+        "north": {"texture": "#terminal"},
+        "south": {"texture": "#terminal"},
+        "up": {"texture": "#terminal"},
+        "down": {"texture": "#terminal"}
+      }
+    },
+    {
+      "from": [13, 10, 9],
+      "to": [16, 13, 12],
+      "faces": {
+        "west": {"texture": "#terminal"},
+        "east": {"texture": "#terminal"},
+        "north": {"texture": "#terminal"},
+        "south": {"texture": "#terminal"},
+        "up": {"texture": "#terminal"},
+        "down": {"texture": "#terminal"}
+      }
+    }
+  ]
+}
