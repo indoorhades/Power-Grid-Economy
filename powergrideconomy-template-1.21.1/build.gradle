@@ -98,10 +98,14 @@ configurations {
 }
 
 dependencies {
-    // Core Create dependency used by both Power Grid and Numismatics.
-    implementation "com.simibubi.create:create-${minecraft_version}:${create_version}:slim"
+    // Use Create's slim artifact without its embedded/transitive dependency graph.
+    // The previous transitive graph tried to resolve unavailable versions of JEI,
+    // FTB, JourneyMap, Curios, CC:Tweaked, and Architectury during the build.
+    implementation("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") {
+        transitive = false
+    }
 
-    // Create runtime libraries required by the official Create development setup.
+    // Create's explicit development/runtime libraries.
     implementation "net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}"
     compileOnly "dev.engine-room.flywheel:flywheel-neoforge-api-${minecraft_version}:${flywheel_version}"
     runtimeOnly "dev.engine-room.flywheel:flywheel-neoforge-${minecraft_version}:${flywheel_version}"
