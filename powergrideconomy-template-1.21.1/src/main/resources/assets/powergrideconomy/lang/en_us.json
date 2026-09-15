@@ -1,7 +1,6 @@
 {
-  "itemGroup.powergrideconomy": "Example Mod Tab",
-  "block.powergrideconomy.example_block": "Example Block",
-  "item.powergrideconomy.example_item": "Example Item",
+  "itemGroup.powergrideconomy": "Power Grid Economy",
+  "block.powergrideconomy.electrical_service_block": "Electrical Service Block",
 
   "powergrideconomy.configuration.title": "Power Grid Economy Configs",
   "powergrideconomy.configuration.section.powergrideconomy.common.toml": "Power Grid Economy Configs",
