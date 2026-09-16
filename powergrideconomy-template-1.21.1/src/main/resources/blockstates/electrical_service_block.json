@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "powergrideconomy:block/electrical_service_block",
+      "y": 180
+    },
+    "facing=south": {
+      "model": "powergrideconomy:block/electrical_service_block"
+    },
+    "facing=east": {
+      "model": "powergrideconomy:block/electrical_service_block",
+      "y": 90
+    },
+    "facing=west": {
+      "model": "powergrideconomy:block/electrical_service_block",
+      "y": 270
+    }
+  }
+}
