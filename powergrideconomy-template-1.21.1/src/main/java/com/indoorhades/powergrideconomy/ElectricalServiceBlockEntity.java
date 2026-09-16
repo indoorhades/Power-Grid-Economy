@@ -1,8 +1,10 @@
 package com.indoorhades.powergrideconomy;
 
+import dev.ithundxr.createnumismatics.content.bank.IDCardItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -36,6 +38,38 @@ public class ElectricalServiceBlockEntity extends BlockEntity {
                 setChanged();
             }
         }
+    }
+
+    /**
+     * Editing is unrestricted until an ID Card has bound an owner.
+     * Once bound, only that owner's UUID may edit the service block.
+     */
+    public boolean canEdit(UUID playerUuid) {
+        if (!idCardBound || ownerUuid == null) {
+            return true;
+        }
+        return ownerUuid.equals(playerUuid);
+    }
+
+    /**
+     * Binds the service block to the player represented by the ID Card.
+     * The card must already contain an identity supplied by Create: Numismatics.
+     */
+    public boolean bindOwnerFromCard(ItemStack stack, UUID playerUuid) {
+        if (!(stack.getItem() instanceof IDCardItem)) {
+            return false;
+        }
+        if (IDCardItem.get(stack) == null) {
+            return false;
+        }
+        if (!canEdit(playerUuid)) {
+            return false;
+        }
+
+        ownerUuid = playerUuid;
+        idCardBound = true;
+        setChanged();
+        return true;
     }
 
     public boolean isServiceEnabled() { return serviceEnabled; }
