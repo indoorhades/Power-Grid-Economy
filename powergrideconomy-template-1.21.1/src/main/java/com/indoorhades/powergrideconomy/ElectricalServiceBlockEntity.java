@@ -1,11 +1,15 @@
 package com.indoorhades.powergrideconomy;
 
+import dev.ithundxr.createnumismatics.Numismatics;
+import dev.ithundxr.createnumismatics.content.backend.BankAccount;
+import dev.ithundxr.createnumismatics.content.bank.IDCardItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-
 import org.patryk3211.powergrid.electricity.base.IElectricEntity;
 import org.patryk3211.powergrid.electricity.sim.SwitchedWire;
 import org.patryk3211.powergrid.electricity.sim.node.IElectricNode;
@@ -90,9 +94,13 @@ public class ElectricalServiceBlockEntity extends BlockEntity implements IElectr
 
     public boolean canEdit(UUID playerUuid) { return !idCardBound || (ownerUuid != null && ownerUuid.equals(playerUuid)); }
 
-    public boolean bindOwner(UUID playerUuid) {
-        if (idCardBound && !canEdit(playerUuid)) return false;
-        ownerUuid = playerUuid;
+    /** Binds the exact UUID stored inside the Numismatics ID Card. */
+    public boolean bindOwnerFromCard(ItemStack card, UUID playerUuid) {
+        UUID cardUuid = IDCardItem.get(card);
+        if (cardUuid == null) return false;
+        if (!cardUuid.equals(playerUuid)) return false;
+        if (idCardBound && !cardUuid.equals(ownerUuid)) return false;
+        ownerUuid = cardUuid;
         idCardBound = true;
         setChanged();
         return true;
@@ -116,6 +124,37 @@ public class ElectricalServiceBlockEntity extends BlockEntity implements IElectr
 
     public long calculateTimePrice(long days) { return safeMultiply(Math.max(0L, days), pricePerUnit); }
     public long calculateEnergyPrice(long energyWh) { return safeMultiply(Math.max(0L, energyWh), pricePerUnit); }
+
+    /** Pays the owner using Numismatics' real player bank account, then activates time. */
+    public boolean purchaseTime(Player buyer, long days) {
+        if (planType != PlanType.TIME || days <= 0 || ownerUuid == null) return false;
+        long total = calculateTimePrice(days);
+        if (total > Integer.MAX_VALUE) return false;
+        BankAccount buyerAccount = Numismatics.BANK.getAccount(buyer);
+        BankAccount ownerAccount = Numismatics.BANK.getOrCreateAccount(ownerUuid, BankAccount.Type.PLAYER);
+        if (!buyerAccount.deduct((int) total, false)) return false;
+        ownerAccount.deposit((int) total);
+        buyerUuid = buyer.getUUID();
+        remainingTimeTicks = safeAdd(remainingTimeTicks, safeMultiply(days, TICKS_PER_DAY));
+        setServiceEnabled(true);
+        return true;
+    }
+
+    /** Pays the owner using Numismatics' real player bank account, then activates energy. */
+    public boolean purchaseEnergy(Player buyer, long energyWh) {
+        if (planType != PlanType.ENERGY || energyWh <= 0 || ownerUuid == null) return false;
+        long total = calculateEnergyPrice(energyWh);
+        if (total > Integer.MAX_VALUE) return false;
+        BankAccount buyerAccount = Numismatics.BANK.getAccount(buyer);
+        BankAccount ownerAccount = Numismatics.BANK.getOrCreateAccount(ownerUuid, BankAccount.Type.PLAYER);
+        if (!buyerAccount.deduct((int) total, false)) return false;
+        ownerAccount.deposit((int) total);
+        buyerUuid = buyer.getUUID();
+        remainingEnergy = safeAdd(remainingEnergy, energyWh);
+        energyRemainder = 0.0D;
+        setServiceEnabled(true);
+        return true;
+    }
 
     public boolean activateTimePurchase(UUID buyer, long days) {
         if (planType != PlanType.TIME || days <= 0) return false;
