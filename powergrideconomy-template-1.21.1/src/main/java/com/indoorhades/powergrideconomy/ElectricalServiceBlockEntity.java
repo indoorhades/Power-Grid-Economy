@@ -1,16 +1,17 @@
 package com.indoorhades.powergrideconomy;
 
-import dev.ithundxr.createnumismatics.content.bank.IDCardItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.Nullable;
+import org.patryk3211.powergrid.electricity.base.ElectricBlockEntity;
+import org.patryk3211.powergrid.electricity.sim.SwitchedWire;
 
 import java.util.UUID;
 
-public class ElectricalServiceBlockEntity extends BlockEntity {
+public class ElectricalServiceBlockEntity extends ElectricBlockEntity {
     public enum PlanType { NONE, TIME, ENERGY }
 
     private long serverTicks;
@@ -25,51 +26,80 @@ public class ElectricalServiceBlockEntity extends BlockEntity {
     private double energyRemainder;
     private boolean serviceEnabled = true;
 
+    @Nullable
+    private SwitchedWire positiveSwitch;
+    @Nullable
+    private SwitchedWire negativeSwitch;
+
     public ElectricalServiceBlockEntity(BlockPos pos, BlockState state) {
         super(PowerGridEconomy.ELECTRICAL_SERVICE_BLOCK_ENTITY.get(), pos, state);
     }
 
+    /**
+     * Power Grid circuit:
+     * terminal 0 = positive input
+     * terminal 1 = negative input
+     * terminal 2 = positive output
+     * terminal 3 = negative output
+     *
+     * The two switched wires are the physical service switch. When the service is
+     * cut, both conductors are opened.
+     */
+    @Override
+    public void buildCircuit(CircuitBuilder builder) {
+        builder.setTerminalCount(4);
+        positiveSwitch = builder.connectSwitch(0.001f, builder.terminalNode(0), builder.terminalNode(2), serviceEnabled);
+        negativeSwitch = builder.connectSwitch(0.001f, builder.terminalNode(1), builder.terminalNode(3), serviceEnabled);
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (level != null && !level.isClientSide) {
+            tickServer();
+        }
+    }
+
     public void tickServer() {
         serverTicks++;
+        updateSwitchState();
+
         if (planType == PlanType.TIME && remainingTimeTicks > 0) {
             remainingTimeTicks--;
             if (remainingTimeTicks == 0) {
                 serviceEnabled = false;
+                updateSwitchState();
                 setChanged();
+            }
+        }
+
+        if (planType == PlanType.ENERGY && serviceEnabled && remainingEnergy > 0 && positiveSwitch != null) {
+            double watts = Math.max(0.0D, positiveSwitch.power());
+            double whThisTick = watts / 72000.0D;
+            if (whThisTick > 0.0D) {
+                energyRemainder += whThisTick;
+                long wholeWh = (long) energyRemainder;
+                if (wholeWh > 0) {
+                    energyRemainder -= wholeWh;
+                    remainingEnergy = Math.max(0L, remainingEnergy - wholeWh);
+                    totalEnergyConsumed += wholeWh;
+                    if (remainingEnergy == 0) {
+                        serviceEnabled = false;
+                        updateSwitchState();
+                    }
+                    setChanged();
+                }
             }
         }
     }
 
-    /**
-     * Editing is unrestricted until an ID Card has bound an owner.
-     * Once bound, only that owner's UUID may edit the service block.
-     */
-    public boolean canEdit(UUID playerUuid) {
-        if (!idCardBound || ownerUuid == null) {
-            return true;
+    private void updateSwitchState() {
+        if (positiveSwitch != null) {
+            positiveSwitch.setState(serviceEnabled);
         }
-        return ownerUuid.equals(playerUuid);
-    }
-
-    /**
-     * Binds the service block to the player represented by the ID Card.
-     * The card must already contain an identity supplied by Create: Numismatics.
-     */
-    public boolean bindOwnerFromCard(ItemStack stack, UUID playerUuid) {
-        if (!(stack.getItem() instanceof IDCardItem)) {
-            return false;
+        if (negativeSwitch != null) {
+            negativeSwitch.setState(serviceEnabled);
         }
-        if (IDCardItem.get(stack) == null) {
-            return false;
-        }
-        if (!canEdit(playerUuid)) {
-            return false;
-        }
-
-        ownerUuid = playerUuid;
-        idCardBound = true;
-        setChanged();
-        return true;
     }
 
     public boolean isServiceEnabled() { return serviceEnabled; }
@@ -81,6 +111,31 @@ public class ElectricalServiceBlockEntity extends BlockEntity {
     public long getRemainingTimeTicks() { return remainingTimeTicks; }
     public long getRemainingEnergy() { return remainingEnergy; }
     public long getTotalEnergyConsumed() { return totalEnergyConsumed; }
+
+    public boolean canEdit(UUID playerUuid) {
+        return !idCardBound || ownerUuid == null || ownerUuid.equals(playerUuid);
+    }
+
+    /**
+     * Binds the service to the identity stored by the real Numismatics ID Card.
+     * The IDCardItem API is intentionally kept in the block class, so this method
+     * only receives the already validated stack/player pair.
+     */
+    public boolean bindOwnerFromCard(ItemStack card, UUID playerUuid) {
+        if (idCardBound && ownerUuid != null && !ownerUuid.equals(playerUuid)) {
+            return false;
+        }
+        ownerUuid = playerUuid;
+        idCardBound = true;
+        setChanged();
+        return true;
+    }
+
+    public void setServiceEnabled(boolean enabled) {
+        serviceEnabled = enabled;
+        updateSwitchState();
+        setChanged();
+    }
 
     public Component getStatusMessage() {
         String status = serviceEnabled ? "ACTIVO" : "CORTADO";
@@ -124,5 +179,6 @@ public class ElectricalServiceBlockEntity extends BlockEntity {
         totalEnergyConsumed = Math.max(0L, tag.getLong("TotalEnergyConsumedWh"));
         energyRemainder = Math.max(0.0D, tag.getDouble("EnergyRemainder"));
         serviceEnabled = tag.getBoolean("ServiceEnabled");
+        updateSwitchState();
     }
 }
