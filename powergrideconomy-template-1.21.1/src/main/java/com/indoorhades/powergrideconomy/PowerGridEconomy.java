@@ -15,13 +15,13 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -40,7 +40,6 @@ public class PowerGridEconomy {
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES =
             DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, MODID);
 
-    /** The new electrical service block. */
     public static final DeferredBlock<ElectricalServiceBlock> ELECTRICAL_SERVICE_BLOCK = BLOCKS.register(
             "electrical_service_block",
             () -> new ElectricalServiceBlock(BlockBehaviour.Properties.of()
@@ -48,11 +47,9 @@ public class PowerGridEconomy {
                     .destroyTime(3.0f)
                     .explosionResistance(6.0f)));
 
-    /** Inventory item for the electrical service block. */
     public static final DeferredItem<BlockItem> ELECTRICAL_SERVICE_BLOCK_ITEM =
             ITEMS.registerSimpleBlockItem("electrical_service_block", ELECTRICAL_SERVICE_BLOCK);
 
-    /** Block entity that will hold owner, plan and consumption data. */
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ElectricalServiceBlockEntity>>
             ELECTRICAL_SERVICE_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register(
                     "electrical_service_block",
@@ -92,7 +89,26 @@ public class PowerGridEconomy {
         }
     }
 
-    @SubscribeEvent
+    @net.neoforged.bus.api.SubscribeEvent
+    public void onBlockBreak(BlockEvent.BreakEvent event) {
+        if (!(event.getState().getBlock() instanceof ElectricalServiceBlock)) {
+            return;
+        }
+
+        if (!(event.getLevel().getBlockEntity(event.getPos()) instanceof ElectricalServiceBlockEntity electrical)) {
+            return;
+        }
+
+        if (electrical.isIdCardBound() &&
+                (!event.getPlayer().isShiftKeyDown() || !electrical.canEdit(event.getPlayer().getUUID()))) {
+            event.setCanceled(true);
+            event.getPlayer().displayClientMessage(
+                    Component.literal("Servicio protegido: necesitas la ID Card del propietario y estar agachado."),
+                    true);
+        }
+    }
+
+    @net.neoforged.bus.api.SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
         LOGGER.info("Power Grid Economy server systems ready");
     }
